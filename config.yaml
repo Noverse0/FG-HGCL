@@ -2,8 +2,8 @@ cora:
   num_layers: 1
   hid_dim: 512
   proj_dim: 512
-  lr: 0.001
-  weight_decay: 0.0001
+  lr: 1.0e-03
+  weight_decay: 1.0e-04
   tau_g: 0.4
   tau_n: 0.9
   w_g: 0.5
@@ -11,7 +11,7 @@ cora:
   eval_lr: 0.001
   eval_epochs: 200
   dropout_rate: 0.4
-  noise_std: [0.2, 0.3]
+  noise_std: 0.4
   batch_size1: null
   batch_size2: null
   n_w_wn: 1.0
@@ -21,18 +21,18 @@ cora:
   
 citeseer:
   num_layers: 1
-  hid_dim: 512
-  proj_dim: 512
-  lr: 0.00005
-  weight_decay: 0.0005
+  hid_dim: 1024
+  proj_dim: 1024
+  lr: 1.0e-04
+  weight_decay: 5.0e-04
   tau_g: 0.8
   tau_n: 0.9
-  w_g: 1.0
+  w_g: 0.5
   epochs: 150
   eval_lr: 0.001
   eval_epochs: 100
-  dropout_rate: 0.4
-  noise_std: [0.3, 0.1]
+  dropout_rate: 0.9
+  noise_std: 0.6
   batch_size1: null
   batch_size2: null
   n_w_wn: 0.7
@@ -44,8 +44,8 @@ pubmed:
   num_layers: 1
   hid_dim: 512
   proj_dim: 512
-  lr: 0.0005
-  weight_decay: 0.0001
+  lr: 5.0e-04
+  weight_decay: 1.0e-04
   tau_g: 0.8
   tau_n: 0.3
   w_g: 1.0
@@ -53,7 +53,7 @@ pubmed:
   eval_lr: 0.01
   eval_epochs: 300
   dropout_rate: 0.5
-  noise_std: [0.3, 0.1]
+  noise_std: 0.1
   batch_size1: null
   batch_size2: null
   n_w_wn: 1.0
@@ -65,8 +65,8 @@ cora_coauthor:
   num_layers: 1
   hid_dim: 512
   proj_dim: 512
-  lr: 0.0001
-  weight_decay: 0.0005
+  lr: 1.0e-04
+  weight_decay: 5.0e-04
   tau_g: 0.5
   tau_n: 0.7
   w_g: 1.0
@@ -74,7 +74,7 @@ cora_coauthor:
   eval_lr: 0.001
   eval_epochs: 300
   dropout_rate: 0.3
-  noise_std: [0.4, 0.7]
+  noise_std: 0.4
   batch_size1: null
   batch_size2: null
   n_w_wn: 1.0
@@ -86,8 +86,8 @@ dblp_coauthor:
   num_layers: 1
   hid_dim: 512
   proj_dim: 512
-  lr: 0.001
-  weight_decay: 0.0005
+  lr: 1.0e-03
+  weight_decay: 5.0e-04
   tau_g: 0.2
   tau_n: 0.9
   w_g: 0.5
@@ -95,7 +95,7 @@ dblp_coauthor:
   eval_lr: 0.01
   eval_epochs: 100
   dropout_rate: 0.6
-  noise_std: [0.1, 0.4]
+  noise_std: 0.3
   batch_size1: 8192
   batch_size2: 4096
   n_w_wn: 0.3
@@ -107,8 +107,8 @@ zoo:
   num_layers: 1
   hid_dim: 256
   proj_dim: 256
-  lr: 0.001
-  weight_decay: 0.0001
+  lr: 1.0e-03
+  weight_decay: 1.0e-04
   tau_g: 0.6
   tau_n: 0.2
   w_g: 0.5
@@ -116,7 +116,7 @@ zoo:
   eval_lr: 0.005
   eval_epochs: 300
   dropout_rate: 0.0
-  noise_std: [0.2, 0.5]
+  noise_std: 0.5
   batch_size1: null
   batch_size2: null
   n_w_wn: 0.9
@@ -126,8 +126,8 @@ zoo:
 
 20newsW100:
   num_layers: 1
-  hid_dim: 256
-  proj_dim: 256
+  hid_dim: 512
+  proj_dim: 512
   lr: 1.0e-04
   weight_decay: 1.0e-05
   tau_g: 0.4
@@ -137,7 +137,7 @@ zoo:
   eval_lr: 0.01
   eval_epochs: 300
   dropout_rate: 0.7
-  noise_std: [0.4, 0.8]
+  noise_std: 0.9
   batch_size1: null
   batch_size2: null
   n_w_wn: 0.4
@@ -149,29 +149,29 @@ Mushroom:
   num_layers: 1
   hid_dim: 512
   proj_dim: 512
-  lr: 0.001
-  weight_decay: 0.0005
-  tau_g: 0.2
-  tau_n: 0.3
-  w_g: 0.5
+  lr: 1.0e-03
+  weight_decay: 5.0e-04
+  tau_g: 0.6
+  tau_n: 0.2
+  w_g: 1.0
   epochs: 300
   eval_lr: 0.01
   eval_epochs: 100
-  dropout_rate: 0.5
-  noise_std: [0.3, 0.8]
+  dropout_rate: 0.0
+  noise_std: 0.1
   batch_size1: null
   batch_size2: null
-  n_w_wn: 0.2
-  n_w_wp: 0.9
-  g_w_wn: 0.8
-  g_w_wp: 0.7
+  n_w_wn: 0.3
+  n_w_wp: 0.8
+  g_w_wn: 0.1
+  g_w_wp: 0.2
 
 NTU2012:
   num_layers: 1
   hid_dim: 512
   proj_dim: 512
-  lr: 0.0005
-  weight_decay: 0.0005
+  lr: 5.0e-04
+  weight_decay: 5.0e-04
   tau_g: 0.4
   tau_n: 0.6
   w_g: 2.0
@@ -179,7 +179,7 @@ NTU2012:
   eval_lr: 0.005
   eval_epochs: 100
   dropout_rate: 0.2
-  noise_std: [0.5, 0.1]
+  noise_std: 0.1
   batch_size1: null
   batch_size2: null
   n_w_wn: 0.9
@@ -189,10 +189,10 @@ NTU2012:
 
 ModelNet40:
   num_layers: 1
-  hid_dim: 256
-  proj_dim: 256
-  lr: 0.001
-  weight_decay: 0.0005
+  hid_dim: 512
+  proj_dim: 512
+  lr: 1.0e-03
+  weight_decay: 5.0e-04
   tau_g: 0.4
   tau_n: 0.8
   w_g: 1.0
@@ -200,7 +200,7 @@ ModelNet40:
   eval_lr: 0.005
   eval_epochs: 300
   dropout_rate: 0.2
-  noise_std: [0.1, 0.9]
+  noise_std: 0.1
   batch_size1: null
   batch_size2: null
   n_w_wn: 0.4
