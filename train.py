@@ -2,6 +2,7 @@ import argparse
 import yaml
 import numpy as np
 import torch
+import matplotlib.pyplot as plt
 from tqdm import tqdm
 from model.loader import DatasetLoader
 from model.models import FG_HGCL, HGNN
@@ -9,20 +10,34 @@ from model.evaluation import linear_evaluation
 from model.utils import fix_seed, plot_tsne
 
 
+def plot_loss(align_loss_list, uniform_loss_list, file_name="loss.pdf"):
+    # 점 그래프를 그리는 코드
+    plt.figure()  # 새로운 그림을 생성
+    plt.scatter(uniform_loss_list, align_loss_list)  # x와 y 리스트로 점 그래프를 생성
+    
+    # 각 점 옆에 숫자 표시
+    for i, (x, y) in enumerate(zip(uniform_loss_list, align_loss_list)):
+        plt.text(x, y, str(i*10), color="red", fontsize=12)
+
+    # 그래프를 png 파일로 저장
+    scatter_plot_path = f'{file_name}.png'
+    plt.savefig(scatter_plot_path)
+
+
 def align_loss(z1, z2, alpha=2):
     # z1과 z2 사이의 차이를 계산하고, L2 노름을 취한 후 제곱합니다.
     return torch.mean(torch.norm(z1 - z2, dim=1) ** alpha).item()
 
 
-def uniform_loss(z1, z2, t=1.0):
+def uniform_loss(z, t=2.0):
     # z1과 z2 사이의 거리에 대한 음의 지수 함수를 계산합니다.
-    pairwise_distances = torch.norm(z1.unsqueeze(1) - z2.unsqueeze(0), dim=2, p=2)
+    pairwise_distances = torch.norm(z.unsqueeze(1) - z.unsqueeze(0), dim=2, p=2)
     exponential_distances = torch.exp(-t * pairwise_distances)
     
     # 이를 평균내고 로그를 취합니다.
-    return -torch.log(torch.mean(exponential_distances) + 1e-15).item()  # 1e-15는 수치 안정성을 위해 추가됩니다.
+    return torch.log(torch.mean(exponential_distances) + 1e-15).item()
 
-def train(data, model, optimizer, params, epoch, seed):
+def train(data, model, optimizer, params, epoch):
     model.train()
     optimizer.zero_grad(set_to_none=True)
 
@@ -42,19 +57,16 @@ def train(data, model, optimizer, params, epoch, seed):
     loss.backward()
     optimizer.step()
     
-    # Print t-SNE plot
-    if epoch == params['epochs']:
-        # plot_tsne(n1, data.labels, dir="tsne_figure", file_name=f'{args.dataset}_{seed}_fghgcl.pdf')
-    
-        print('seed', seed)
-        print('loss_align_n = ', align_loss(n1, n2, alpha=2))
-        print('loss_uniform_n = ', uniform_loss(n1, n2, t=2))
+    if epoch % 10 == 0:
+        align_loss_list.append(align_loss(n1, n2, alpha=2))
+        uniform_loss_list.append(uniform_loss(n1, t=2))
     
     return loss.item(), model
 
-def node_classification_eval(model, data, params, num_splits=20):
+def node_classification_eval(model, data, params, seed, num_splits=20):
     model.eval()
     n, _ = model(data.features, data.hyperedge_index)
+    noise_n, _ = model(data.features, data.hyperedge_index, 0.0, params['noise_std'])
     
     lr = params['eval_lr']
     max_epoch = params['eval_epochs']
@@ -63,6 +75,9 @@ def node_classification_eval(model, data, params, num_splits=20):
     for i in range(num_splits):
         masks = data.generate_random_split(seed=i)
         accs.append(linear_evaluation(n, data.labels, masks, lr=lr, max_epoch=max_epoch))
+        
+    # print('seed ', seed)
+    # plot_tsne(n, data.labels, dir="tsne_figure", file_name=f'{args.dataset}_{seed}_fghgcl.pdf')
             
     return accs
 
@@ -79,19 +94,25 @@ def main():
         # Reset the peak memory stats at the beginning of each iteration
         torch.cuda.reset_peak_memory_stats(args.device)
         
+        global align_loss_list
+        global uniform_loss_list
+        align_loss_list = []
+        uniform_loss_list = []
+        
         fix_seed(seed)
         encoder = HGNN(data.features.shape[1], params['hid_dim'], params['hid_dim'], params['num_layers'])
         model = FG_HGCL(encoder, params['proj_dim'], args.device).to(args.device)
         optimizer = torch.optim.AdamW(model.parameters(), lr=params['lr'], weight_decay=params['weight_decay'])
         for epoch in tqdm(range(1, params['epochs'] + 1)):
-            loss, model = train(data, model, optimizer, params, epoch, seed)
+            loss, model = train(data, model, optimizer, params, epoch)
         
+        plot_loss(align_loss_list, uniform_loss_list, seed)
         # At the end of each seed iteration, record the memory usage
         gpu_memory_allocated.append(torch.cuda.memory_allocated(args.device))
         gpu_max_memory_allocated.append(torch.cuda.max_memory_allocated(args.device))
 
         # evaluation
-        acc = node_classification_eval(model, data, params)
+        acc = node_classification_eval(model, data, params, seed)
         accs.append(acc)
         acc_mean, acc_std = np.mean(acc, axis=0), np.std(acc, axis=0)
         print(f'seed: {seed}, train_acc: {acc_mean[0]:.2f}+-{acc_std[0]:.2f}, '
