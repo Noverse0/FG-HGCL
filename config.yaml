@@ -151,7 +151,7 @@ Mushroom:
   proj_dim: 512
   lr: 1.0e-03
   weight_decay: 5.0e-04
-  tau_g: 0.6
+  tau_g: 0.1
   tau_n: 0.2
   w_g: 1.0
   epochs: 300
@@ -161,10 +161,10 @@ Mushroom:
   noise_std: 0.1
   batch_size1: null
   batch_size2: null
-  n_w_wn: 0.3
-  n_w_wp: 0.8
-  g_w_wn: 0.1
-  g_w_wp: 0.2
+  n_w_wn: 0.5
+  n_w_wp: 0.3
+  g_w_wn: 0.6
+  g_w_wp: 0.8
 
 NTU2012:
   num_layers: 1

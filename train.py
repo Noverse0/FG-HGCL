@@ -2,32 +2,11 @@ import argparse
 import yaml
 import numpy as np
 import torch
-import matplotlib.pyplot as plt
 from tqdm import tqdm
 from model.loader import DatasetLoader
 from model.models import FG_HGCL, HGNN
 from model.evaluation import linear_evaluation
 from model.utils import fix_seed, plot_tsne
-
-
-def plot_loss(align_loss_list, uniform_loss_list, file_name="loss.pdf"):
-    # 점 그래프를 그리는 코드
-    plt.figure()  # 새로운 그림을 생성
-    plt.scatter(uniform_loss_list, align_loss_list)  # x와 y 리스트로 점 그래프를 생성
-    
-    # 각 점 옆에 숫자 표시
-    for i, (x, y) in enumerate(zip(uniform_loss_list, align_loss_list)):
-        plt.text(x, y, str(i*10), color="red", fontsize=12)
-
-    # 그래프를 png 파일로 저장
-    scatter_plot_path = f'{file_name}.png'
-    plt.savefig(scatter_plot_path)
-
-
-def align_loss(z1, z2, alpha=2):
-    # z1과 z2 사이의 차이를 계산하고, L2 노름을 취한 후 제곱합니다.
-    return torch.mean(torch.norm(z1 - z2, dim=1) ** alpha).item()
-
 
 def uniform_loss(z, t=2.0):
     # z1과 z2 사이의 거리에 대한 음의 지수 함수를 계산합니다.
@@ -57,16 +36,11 @@ def train(data, model, optimizer, params, epoch):
     loss.backward()
     optimizer.step()
     
-    if epoch % 10 == 0:
-        align_loss_list.append(align_loss(n1, n2, alpha=2))
-        uniform_loss_list.append(uniform_loss(n1, t=2))
-    
     return loss.item(), model
 
 def node_classification_eval(model, data, params, seed, num_splits=20):
     model.eval()
     n, _ = model(data.features, data.hyperedge_index)
-    noise_n, _ = model(data.features, data.hyperedge_index, 0.0, params['noise_std'])
     
     lr = params['eval_lr']
     max_epoch = params['eval_epochs']
@@ -76,8 +50,8 @@ def node_classification_eval(model, data, params, seed, num_splits=20):
         masks = data.generate_random_split(seed=i)
         accs.append(linear_evaluation(n, data.labels, masks, lr=lr, max_epoch=max_epoch))
         
-    # print('seed ', seed)
-    # plot_tsne(n, data.labels, dir="tsne_figure", file_name=f'{args.dataset}_{seed}_fghgcl.pdf')
+    print('seed ', seed)
+    plot_tsne(n, data.labels, dir="tsne_figure", file_name=f'{args.dataset}_{seed}_fghgcl.pdf')
             
     return accs
 
@@ -94,11 +68,6 @@ def main():
         # Reset the peak memory stats at the beginning of each iteration
         torch.cuda.reset_peak_memory_stats(args.device)
         
-        global align_loss_list
-        global uniform_loss_list
-        align_loss_list = []
-        uniform_loss_list = []
-        
         fix_seed(seed)
         encoder = HGNN(data.features.shape[1], params['hid_dim'], params['hid_dim'], params['num_layers'])
         model = FG_HGCL(encoder, params['proj_dim'], args.device).to(args.device)
@@ -106,7 +75,6 @@ def main():
         for epoch in tqdm(range(1, params['epochs'] + 1)):
             loss, model = train(data, model, optimizer, params, epoch)
         
-        plot_loss(align_loss_list, uniform_loss_list, seed)
         # At the end of each seed iteration, record the memory usage
         gpu_memory_allocated.append(torch.cuda.memory_allocated(args.device))
         gpu_max_memory_allocated.append(torch.cuda.max_memory_allocated(args.device))

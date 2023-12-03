@@ -115,6 +115,7 @@ class FG_HGCL(nn.Module):
         num_samples = h1.size(0)
         num_batches = (num_samples - 1) // batch_size + 1
         indices = torch.arange(0, num_samples, device=self.device)
+        weight_hyperedge = (overlab_hyperedge / overlab_hyperedge.diag())
         losses = []
 
         for i in range(num_batches):
@@ -124,6 +125,7 @@ class FG_HGCL(nn.Module):
             current_h1 = h1[start_idx:end_idx]
             current_h2 = h2[start_idx:end_idx]
             current_overlab_hyperedge = overlab_hyperedge[start_idx:end_idx, start_idx:end_idx]
+            current_weight_hyperedge = weight_hyperedge[start_idx:end_idx, start_idx:end_idx]
 
             self_sim = self.f(self.cosine_similarity(current_h1, current_h1), tau)
             between_sim = self.f(self.cosine_similarity(current_h1, current_h2), tau)
@@ -131,10 +133,9 @@ class FG_HGCL(nn.Module):
             
             if detail:
                 pos_sim = between_sim * diag_bool * current_overlab_hyperedge
-                weak_pos_sim = self_sim * (current_overlab_hyperedge != 0 & ~diag_bool) * current_overlab_hyperedge * w_wp
-                weak_neg_sim = between_sim * (current_overlab_hyperedge != 0 & ~diag_bool) * current_overlab_hyperedge * w_wn
-                neg_sim = between_sim * (current_overlab_hyperedge == 0)
-                neg_sim += self_sim * (current_overlab_hyperedge == 0)
+                weak_pos_sim = self_sim * (current_overlab_hyperedge != 0 & ~diag_bool) * current_overlab_hyperedge * current_weight_hyperedge * w_wp
+                weak_neg_sim = between_sim * (current_overlab_hyperedge != 0 & ~diag_bool) * current_overlab_hyperedge * (1-current_weight_hyperedge) * w_wn
+                neg_sim = self_sim * (current_overlab_hyperedge == 0)
 
                 loss = -torch.log((pos_sim.sum(1) + weak_pos_sim.sum(1)) / (pos_sim.sum(1) + weak_pos_sim.sum(1) + neg_sim.sum(1) + weak_neg_sim.sum(1)))
 
