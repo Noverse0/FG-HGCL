@@ -1,9 +1,8 @@
-# torch_scatter
 pandas
 numpy
 torch == 2.0.1
 torch_geometric
+torch_scatter
 tqdm
 scikit-learn
-wandb
 matplotlib
