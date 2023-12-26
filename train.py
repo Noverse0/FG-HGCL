@@ -100,7 +100,7 @@ def main():
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser('TriCL unsupervised learning.')
+    parser = argparse.ArgumentParser('FG-HGCL unsupervised learning.')
     parser.add_argument('--dataset', type=str, default='cora', 
         choices=['cora', 'citeseer', 'pubmed', 'cora_coauthor', 'dblp_coauthor', 
                  'zoo', '20newsW100', 'Mushroom', 'NTU2012', 'ModelNet40'])
