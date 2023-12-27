@@ -8,13 +8,6 @@ from model.models import FG_HGCL, HGNN
 from model.evaluation import linear_evaluation
 from model.utils import fix_seed, plot_tsne
 
-def uniform_loss(z, t=2.0):
-    # z1과 z2 사이의 거리에 대한 음의 지수 함수를 계산합니다.
-    pairwise_distances = torch.norm(z.unsqueeze(1) - z.unsqueeze(0), dim=2, p=2)
-    exponential_distances = torch.exp(-t * pairwise_distances)
-    
-    # 이를 평균내고 로그를 취합니다.
-    return torch.log(torch.mean(exponential_distances) + 1e-15).item()
 
 def train(data, model, optimizer, params, epoch):
     model.train()
@@ -51,7 +44,7 @@ def node_classification_eval(model, data, params, seed, num_splits=20):
         accs.append(linear_evaluation(n, data.labels, masks, lr=lr, max_epoch=max_epoch))
         
     print('seed ', seed)
-    plot_tsne(n, data.labels, dir="tsne_figure", file_name=f'{args.dataset}_{seed}_fghgcl.pdf')
+    # plot_tsne(n, data.labels, dir="tsne_figure", file_name=f'{args.dataset}_{seed}_fghgcl.pdf')
             
     return accs
 
@@ -109,4 +102,3 @@ if __name__ == '__main__':
     args = parser.parse_args()
     
     main()
-    
